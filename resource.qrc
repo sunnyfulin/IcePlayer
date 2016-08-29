@@ -1,0 +1,42 @@
+<RCC>
+    <qresource prefix="/">
+        <file>pic/default_album.jpg</file>
+        <file>pic/forwardButtonMini.png</file>
+        <file>pic/full.png</file>
+        <file>pic/lastSong.png</file>
+        <file>pic/lastSong2.png</file>
+        <file>pic/logo-16.png</file>
+        <file>pic/logo-32.png</file>
+        <file>pic/logo-48.png</file>
+        <file>pic/logoButton.png</file>
+        <file>pic/logoButton2.png</file>
+        <file>pic/lrc_background.png</file>
+        <file>pic/lrcButton.png</file>
+        <file>pic/lrcButton2.png</file>
+        <file>pic/lyric.png</file>
+        <file>pic/minButton.png</file>
+        <file>pic/minButton2.png</file>
+        <file>pic/mini.png</file>
+        <file>pic/miniBottomWidget.png</file>
+        <file>pic/miniModeButton.png</file>
+        <file>pic/miniModeButton2.png</file>
+        <file>pic/nextSong.png</file>
+        <file>pic/nextSong2.png</file>
+        <file>pic/pauseButton.png</file>
+        <file>pic/pauseButton2.png</file>
+        <file>pic/pauseButtonMini.png</file>
+        <file>pic/playButton.png</file>
+        <file>pic/playButton2.png</file>
+        <file>pic/playButtonMini.png</file>
+        <file>pic/playMode.png</file>
+        <file>pic/playMode2.png</file>
+        <file>pic/volume.png</file>
+        <file>pic/volume2.png</file>
+        <file>pic/about.png</file>
+        <file>pic/addSongButton.png</file>
+        <file>pic/addSongButton2.png</file>
+        <file>pic/background.png</file>
+        <file>pic/closeButton.png</file>
+        <file>pic/closeButton2.png</file>
+    </qresource>
+</RCC>
