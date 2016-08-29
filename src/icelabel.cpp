@@ -1,17 +1,11 @@
-#include "icelabel.h"
+﻿#include "icelabel.h"
 
-CIceLabel::CIceLabel(const QString &text, QWidget *parent) : QLabel(parent)
+CIceLabel::CIceLabel(const QString &text, QWidget *parent) : QLabel(text,parent)
 {
     _timer = NULL;
-    _ms=0;
+    _ms = 0;
     _context = "";
     _pos = 0;
-
-    setText(text);
-}
-
-CIceLabel::~CIceLabel()
-{
 }
 
 void CIceLabel::SetShownText(const QString &context, int ms)

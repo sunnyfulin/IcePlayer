@@ -7,14 +7,14 @@
 
 CAboutFrame::CAboutFrame(QWidget *parent) : QWidget(parent),_isMoveState(false)
 {
-    _exitButton = new CIceButton(this);
-    _exitButton->setGeometry(QRect(255, 12, 30, 30));
-    _exitButton->setIconSize(QSize(20,20));
+    CIceButton * exitButton = new CIceButton(this);
+    exitButton->setGeometry(QRect(255, 12, 30, 30));
+    exitButton->setIconSize(QSize(20,20));
 
     QIcon icon_exit(":/pic/closeButton.png");
     QIcon icon_exit_press(":/pic/closeButton2.png");
-    _exitButton->SetButtonIcons(icon_exit, icon_exit_press);
-    connect(_exitButton,&CIceButton::clicked,this,&CAboutFrame::hide);
+    exitButton->SetButtonIcons(icon_exit, icon_exit_press);
+    connect(exitButton,&CIceButton::clicked,this,&CAboutFrame::hide);
 
     setWindowFlags(Qt::FramelessWindowHint);
     setAttribute(Qt::WA_TranslucentBackground);

@@ -4,7 +4,6 @@
 #include <QString>
 #include <QList>
 
-//枚举播放模式
 enum PlayMode
 {
     SINGAL,
@@ -13,7 +12,6 @@ enum PlayMode
     RANDOM
 };
 
-//网络音乐信息，专辑图片，歌词获取状态
 enum NetWorkInfo
 {
     RECEIVE_INFO,
@@ -24,63 +22,63 @@ enum NetWorkInfo
 
 struct CSongBasicInfo
 {
-    QString _songID;
-    QString _songName;
-    QString _encryptedSongID;
-    int _hasMv;
-    int _artist;
-    QString _artistName;
+    QString songID;
+    QString songName;
+    QString encryptedSongID;
+    int hasMv;
+    int artist;
+    QString artistName;
 };
 
 struct CAlbumInfo
 {
-    QString _albumID;
-    QString _albumName;
-    QString _artistName;
-    QString _artistPic;
+    QString albumID;
+    QString albumName;
+    QString artistName;
+    QString artistPic;
 };
 
 struct CSongInfo
 {
-    QString _order;
-    QString _errorCode;
-    QList<CSongBasicInfo *> _songResults;
-    QList<CAlbumInfo *> _albumInfos;
+    QString order;
+    QString errorCode;
+    QList<CSongBasicInfo *> songResults;
+    QList<CAlbumInfo *> albumInfos;
 };
 
 struct CSongList
 {
-    QString _queryID;
-    QString _songID;
-    QString _songName;
-    QString _artistID;
-    QString _artistName;
-    QString _albumID;
-    QString _songPicSmall;
-    QString _songPicBig;
-    QString _songPicRadio;
-    QString _lrcLick;
-    QString _version;
-    QString _copytype;
-    QString _time;
-    QString _linkCode;
-    QString _songLink;
-    QString _format;
-    QString _rate;
-    QString _size;
-    QString _relateStatus;
-    QString _resourceType;
+    QString queryID;
+    QString songID;
+    QString songName;
+    QString artistID;
+    QString artistName;
+    QString albumID;
+    QString songPicSmall;
+    QString songPicBig;
+    QString songPicRadio;
+    QString lrcLick;
+    QString version;
+    QString copytype;
+    QString time;
+    QString linkCode;
+    QString songLink;
+    QString format;
+    QString rate;
+    QString size;
+    QString relateStatus;
+    QString resourceType;
 };
 
 struct CSongData
 {
-    QString _xcode;
-    QList<CSongList *> _songLists;
+    QString xcode;
+    QList<CSongList *> songLists;
 };
 
 struct CSongLink
 {
-    QString _errorCode;
-    CSongData _songData;
+    QString errorCode;
+    CSongData songData;
 };
 #endif // COMMON_H

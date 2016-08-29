@@ -1,4 +1,4 @@
-#ifndef CICEBUTTON_H
+﻿#ifndef CICEBUTTON_H
 #define CICEBUTTON_H
 
 #include <QPushButton>
@@ -9,7 +9,7 @@ class CIceButton : public QPushButton
     Q_OBJECT
 public:
     CIceButton(QWidget * parent = 0);
-    ~CIceButton();
+    ~CIceButton(){}
 
     void SetButtonIcons(const QIcon &normal, const QIcon &pressed);
 

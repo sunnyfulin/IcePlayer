@@ -1,4 +1,4 @@
-#ifndef CICELABEL_H
+﻿#ifndef CICELABEL_H
 #define CICELABEL_H
 
 #include <QLabel>
@@ -8,8 +8,8 @@ class CIceLabel : public QLabel
 {
     Q_OBJECT
 public:
-    explicit CIceLabel(const QString & text, QWidget *parent=0);
-    ~CIceLabel();
+    CIceLabel(const QString & text, QWidget *parent=0);
+    ~CIceLabel(){}
 
     void SetShownText(const QString &context, int ms);
     void SetStopRolling();
