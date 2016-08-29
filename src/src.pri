@@ -6,7 +6,9 @@ HEADERS += \
     $$PWD/icelabel.h \
     $$PWD/icebutton.h \
     $$PWD/icevolbutton.h \
-    $$PWD/aboutframe.h
+    $$PWD/aboutframe.h \
+    $$PWD/lrcwidget.h \
+    $$PWD/lrclabel.h
 
 SOURCES += \
            $$PWD/main.cpp \
@@ -14,5 +16,7 @@ SOURCES += \
     $$PWD/icelabel.cpp \
     $$PWD/icebutton.cpp \
     $$PWD/icevolbutton.cpp \
-    $$PWD/aboutframe.cpp
+    $$PWD/aboutframe.cpp \
+    $$PWD/lrcwidget.cpp \
+    $$PWD/lrclabel.cpp
 

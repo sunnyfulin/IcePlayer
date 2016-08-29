@@ -16,6 +16,7 @@ class CIceLabel;
 class CIceButton;
 class CAboutFrame;
 class CIceVolButton;
+class CLrcWidget;
 
 class CIcePlayer : public QWidget
 {
@@ -29,10 +30,11 @@ private:
     void InitPlayer();
     void InitConnection();
     void InitSubWindow();
+    void InitMenuAction();
 
     void paintEvent(QPaintEvent * e);
-    void dropEvent(QDropEvent *event);
-    void dragEnterEvent(QDragEnterEvent *event);
+    void dropEvent(QDropEvent *e);
+    void dragEnterEvent(QDragEnterEvent *e);
 
     void mousePressEvent(QMouseEvent *);
     void mouseMoveEvent(QMouseEvent *);
@@ -56,14 +58,25 @@ private slots:
     void OnSetPlayPosition(int p);
     void OnSetPosition();
 
+    void OnSetPlayMode(QAction *a);
+
     void OnPlaylistClicked(int row, int column);
     void OnShowCustomContextMenu(const QPoint & p);
+
+    void OnOpenMusic();
+    void OnOpenDir();
+    void OnRemoveCurrentMusic();
+    void OnClearPlayList();
 
 private:
     bool _isMoveState;
     unsigned _x, _y;
-//    ICE_Lrc *iceLrc;
-//    QMap<qint64, QString> _lrcMap;
+
+    QMap<qint64, QString> _lrcMap;
+    CLrcWidget * _lrcWiget;
+
+    //    miniwindow *miniForm;
+    CAboutFrame * _aboutFrame;
 
     QStringList _playList;
     QString _playingFile;
@@ -98,24 +111,6 @@ private:
 
     QMediaPlayer * _mediaPlayer;
     QMediaPlaylist * _mediaList;
-
-    QMenu * _contextMenuLess;
-    QMenu * _contextMenuMore;
-    QMenu * _playModeMenu;
-
-    QActionGroup * _modeActionGroup;
-    QAction * _modeSingal;
-    QAction * _modeListCircle;
-    QAction * _modeSingalCircle;
-    QAction * _modeRandom;
-    QAction * _addMusic;
-    QAction * _addFileDiv;
-    QAction * _removeCurr;
-    QAction * _removeAll;
-
-
-//    miniwindow *miniForm;
-    CAboutFrame * _aboutFrame;
 
 //    NetWorker *networker;
     QString _songName;

@@ -37,7 +37,8 @@ QScrollBar
     width: 5px;
 }
 
-QScrollBar::handle{
+QScrollBar::handle
+{
     background:lightgray;
     border:2px solid transparent;
     border-radius:5px;
@@ -56,4 +57,35 @@ QScrollBar::sub-line
 QScrollBar::add-line
 {
     background:transparent;
+}
+
+QMenu
+{
+    padding:5px;
+    background:white;
+    border:1px solid gray;
+}
+
+QMenu::item
+{
+    padding:0px 40px 0px 30px;
+    height:25px;
+}
+
+QMenu::item:selected:enabled
+{
+    background:#0096ff;
+    color:white;
+}
+
+QMenu::item:selected:!enabled
+{
+    background:transparent;
+}
+
+QMenu::separator
+{
+    height:1px;
+    background:lightgray;
+    margin:5px 0px 5px 0px;
 }

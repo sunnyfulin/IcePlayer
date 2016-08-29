@@ -4,15 +4,20 @@
 #include "icevolbutton.h"
 #include "common.h"
 #include "aboutframe.h"
+#include "lrcwidget.h"
 
+#include <QMenu>
+#include <QTime>
 #include <QFrame>
 #include <QLabel>
+#include <QAction>
 #include <QPixmap>
 #include <QSlider>
 #include <QPalette>
 #include <QPainter>
 #include <QMouseEvent>
 #include <QHeaderView>
+#include <QActionGroup>
 #include <QTableWidget>
 #include <QMediaPlaylist>
 #include <QMediaPlaylist>
@@ -24,12 +29,332 @@ CIcePlayer::CIcePlayer(QWidget *parent) : QWidget(parent) , _isMoveState(false)
     InitPlayer();
     InitConnection();
     InitSubWindow();
+    InitMenuAction();
 }
 
 CIcePlayer::~CIcePlayer()
 {
     delete _aboutFrame;
     _aboutFrame = NULL;
+
+    delete _lrcWiget;
+    _lrcWiget = NULL;
+}
+
+void CIcePlayer::InitPlayer()
+{
+    _mediaPlayer = new QMediaPlayer(this);
+    _mediaList = new QMediaPlaylist(this);
+    _mediaPlayer->setPlaylist(_mediaList);
+
+    _playMode = PlayMode::SINGAL;
+    _preIndex = -1;
+    _currentIndex = 0;
+
+    _mediaList->setPlaybackMode(QMediaPlaylist::CurrentItemOnce);
+}
+
+void CIcePlayer::InitConnection()
+{
+    connect(_exitButton,&CIceButton::clicked,this,&CIcePlayer::close);
+    connect(_minButton,&CIceButton::clicked,this,&CIcePlayer::showMinimized);
+    connect(_mminButton,&CIceButton::clicked,this,&CIcePlayer::OnMminButtonClicked);
+    connect(_logoButton,&CIceButton::clicked,this,&CIcePlayer::OnLogoButtonClicked);
+    connect(_addButton,&CIceButton::clicked,this,&CIcePlayer::OnAddButtonClicked);
+    connect(_playButton,&CIceButton::clicked,this,&CIcePlayer::OnPlayButtonClicked);
+    connect(_lyricButton,&CIceButton::clicked,this,&CIcePlayer::OnLyricButtonClicked);
+    connect(_modeButton,&CIceButton::clicked,this,&CIcePlayer::OnModeButtonClicked);
+    connect(_nextButton,&CIceButton::clicked,this,&CIcePlayer::OnNextButtonClicked);
+    connect(_lastButton,&CIceButton::clicked,this,&CIcePlayer::OnLastButtonClicked);
+    connect(_pauseButton,&CIceButton::clicked,this,&CIcePlayer::OnPauseButtonClicked);
+
+    connect(_mediaPlayer,&QMediaPlayer::positionChanged,this,&CIcePlayer::OnUpdatePlayerPositon);
+    connect(_mediaPlayer,&QMediaPlayer::durationChanged,this,&CIcePlayer::OnUpdatePlayerDuration);
+    connect(_mediaPlayer,&QMediaPlayer::stateChanged,this,&CIcePlayer::OnUpdatePlayerState);
+    connect(_mediaPlayer,SIGNAL(metaDataChanged()),this,SLOT(OnUpdatePlayerMetaData()));
+
+    connect(_volButton,&CIceVolButton::SiVolumeChanged,_mediaPlayer,&QMediaPlayer::setVolume);
+    connect(_playSlider,&QSlider::sliderMoved,this,&CIcePlayer::OnSetPlayPosition);
+    connect(_playSlider,&QSlider::sliderReleased,this,&CIcePlayer::OnSetPosition);
+
+    connect(_playlistTable,&QTableWidget::cellDoubleClicked,this,&CIcePlayer::OnPlaylistClicked);
+    connect(_playlistTable,&QTableWidget::customContextMenuRequested,this,&CIcePlayer::OnShowCustomContextMenu);
+}
+
+void CIcePlayer::InitSubWindow()
+{
+    _aboutFrame = new CAboutFrame;
+
+    _lrcWiget = new CLrcWidget;
+}
+
+void CIcePlayer::InitMenuAction()
+{
+    QAction * modeSingle = new QAction("PlaySingle", this);
+    QAction * modeListCircle = new QAction("ListCircle", this);
+    QAction * modeSingalCircle = new QAction("SingleCircle", this);
+    QAction * modeRandom = new QAction("RandomPlay", this);
+
+    modeSingle->setCheckable(true);
+    modeListCircle->setCheckable(true);
+    modeSingalCircle->setCheckable(true);
+    modeRandom->setCheckable(true);
+
+    QActionGroup * ag = new QActionGroup(this);
+    ag->addAction(modeSingle);
+    ag->addAction(modeListCircle);
+    ag->addAction(modeSingalCircle);
+    ag->addAction(modeRandom);
+
+    connect(ag,&QActionGroup::triggered,this,&CIcePlayer::OnSetPlayMode);
+
+    QMenu * playModeMenu = new QMenu(_modeButton);
+    playModeMenu->addAction(modeSingle);
+    playModeMenu->addAction(modeListCircle);
+    playModeMenu->addAction(modeSingalCircle);
+    playModeMenu->addAction(modeRandom);
+
+    QMenu * contextMenuLess = new QMenu(_playlistTable);
+    QMenu * contextMenuMore = new QMenu(_playlistTable);
+
+    QAction * addMusic = new QAction(QStringLiteral("添加歌曲"),this);
+    QAction * addFileDiv = new QAction(QStringLiteral("添加目录"),this);
+    QAction * removeCurr = new QAction(QStringLiteral("移除本曲"),this);
+    QAction * removeAll = new QAction(QStringLiteral("移除所有"),this);
+
+    connect(addMusic, &QAction::triggered,this,&CIcePlayer::OnOpenMusic);
+    connect(addFileDiv, &QAction::triggered,this,&CIcePlayer::OnOpenDir);
+    connect(removeCurr, &QAction::triggered,this,&CIcePlayer::OnRemoveCurrentMusic);
+    connect(removeAll, &QAction::triggered,this,&CIcePlayer::OnClearPlayList);
+
+    contextMenuLess->addAction(addMusic);
+    contextMenuLess->addAction(addFileDiv);
+    contextMenuLess->addSeparator();
+    contextMenuLess->addAction(removeAll);
+
+    contextMenuMore->addAction(addMusic);
+    contextMenuMore->addAction(addFileDiv);
+    contextMenuMore->addSeparator();
+    contextMenuMore->addAction(removeCurr);
+    contextMenuMore->addAction(removeAll);
+}
+
+void CIcePlayer::paintEvent(QPaintEvent *e)
+{
+    QPainter p(this);
+    p.drawPixmap(0, 0 , QPixmap(":/pic/background.png"));
+}
+
+void CIcePlayer::dropEvent(QDropEvent *e)
+{
+
+}
+
+void CIcePlayer::dragEnterEvent(QDragEnterEvent *e)
+{
+
+}
+
+void CIcePlayer::mousePressEvent(QMouseEvent * e)
+{
+    if(e->button() != Qt::LeftButton && !_isMoveState)
+        return;
+
+    _isMoveState = true;
+
+    _x = e->pos().x();
+    _y = e->pos().y();
+}
+
+void CIcePlayer::mouseMoveEvent(QMouseEvent * e)
+{
+    if(e->button() != Qt::LeftButton && !_isMoveState)
+        return;
+
+    QPoint curPos = e->globalPos();
+    move(curPos.x() - _x ,curPos.y() - _y);
+}
+
+void CIcePlayer::mouseReleaseEvent(QMouseEvent * e)
+{
+    if(e->button() != Qt::LeftButton)
+        return;
+
+    _isMoveState = false;
+}
+
+void CIcePlayer::OnMminButtonClicked()
+{
+
+}
+
+void CIcePlayer::OnLogoButtonClicked()
+{
+    _aboutFrame->show();
+}
+
+void CIcePlayer::OnAddButtonClicked()
+{
+
+}
+
+void CIcePlayer::OnPlayButtonClicked()
+{
+
+}
+
+void CIcePlayer::OnLyricButtonClicked()
+{
+    _lrcWiget->isVisible() ? _lrcWiget->hide() : _lrcWiget->show();
+}
+
+void CIcePlayer::OnModeButtonClicked()
+{
+
+}
+
+void CIcePlayer::OnNextButtonClicked()
+{
+
+}
+
+void CIcePlayer::OnLastButtonClicked()
+{
+
+}
+
+void CIcePlayer::OnPauseButtonClicked()
+{
+
+}
+
+void CIcePlayer::OnUpdatePlayerPositon(qint64 pos)
+{
+    if (!_playSlider->isSliderDown())
+    {
+        _playSlider->setValue(pos);
+    }
+
+    QTime currentTime(0, (pos/60000)%60, (pos/1000)%60);
+    _timeLabel->setText(currentTime.toString("mm:ss"));
+
+    if(_lrcMap.isEmpty())
+        return;
+
+    qint64 previous = 0, later = 0;
+
+    foreach (qint64 value1, _lrcMap.keys())
+    {
+        if (pos >= value1)
+        {
+            previous = value1;
+        }
+        else
+        {
+            later = value1;
+            break;
+        }
+    }
+
+    if (later == 0)
+        later = _mediaPlayer->duration();
+
+    QString current_lrc = _lrcMap.value(previous);
+
+    QString tmp = _lrcWiget->GetText();
+
+    if(current_lrc != tmp)
+    {
+        _lrcWiget->SetText(current_lrc);
+
+        tmp = _lrcWiget->GetText();
+
+        _lrcWiget->StartLrcMask(later - previous);
+    }
+}
+
+void CIcePlayer::OnUpdatePlayerDuration(qint64 dur)
+{
+    _playSlider->setRange(0, dur);
+    _playSlider->setEnabled(dur > 0);
+    _playSlider->setPageStep(dur / 10);
+}
+
+void CIcePlayer::OnUpdatePlayerState(QMediaPlayer::State state)
+{
+
+}
+
+void CIcePlayer::OnUpdatePlayerMetaData()
+{
+
+}
+
+void CIcePlayer::OnSetPlayPosition(int p)
+{
+
+}
+
+void CIcePlayer::OnSetPosition()
+{
+
+}
+
+void CIcePlayer::OnSetPlayMode(QAction * a)
+{
+    if(!a->isChecked())
+        return;
+
+    if(a->text() == "PlaySingle")
+    {
+        _playMode = PlayMode::SINGAL;
+        _mediaList->setPlaybackMode(QMediaPlaylist::CurrentItemOnce);
+    }
+    else if(a->text() == "ListCircle")
+    {
+        _playMode = PlayMode::LISTCIRCLE;
+        _mediaList->setPlaybackMode(QMediaPlaylist::Loop);
+    }
+    else if(a->text() == "SingleCircle")
+    {
+        _playMode = PlayMode::SINGALCIRCLE;
+        _mediaList->setPlaybackMode(QMediaPlaylist::CurrentItemInLoop);
+    }
+    else
+    {
+        _playMode = PlayMode::RANDOM;
+        _mediaList->setPlaybackMode(QMediaPlaylist::Random);
+    }
+}
+
+void CIcePlayer::OnPlaylistClicked(int row, int column)
+{
+
+}
+
+void CIcePlayer::OnShowCustomContextMenu(const QPoint &p)
+{
+
+}
+
+void CIcePlayer::OnOpenMusic()
+{
+
+}
+
+void CIcePlayer::OnOpenDir()
+{
+
+}
+
+void CIcePlayer::OnRemoveCurrentMusic()
+{
+
+}
+
+void CIcePlayer::OnClearPlayList()
+{
+
 }
 
 void CIcePlayer::InitMainWindow()
@@ -177,178 +502,4 @@ void CIcePlayer::InitMainWindow()
     pal.setBrush(QPalette::Base, QBrush(QColor(255, 255, 255)));
     _playlistTable->setPalette(pal);
     _playlistTable->setAcceptDrops(true);
-}
-
-void CIcePlayer::InitPlayer()
-{
-    _mediaPlayer = new QMediaPlayer(this);
-    _mediaList = new QMediaPlaylist(this);
-    _mediaPlayer->setPlaylist(_mediaList);
-
-    _playMode = PlayMode::SINGAL;
-    _preIndex = -1;
-    _currentIndex = 0;
-
-    _mediaList->setPlaybackMode(QMediaPlaylist::CurrentItemOnce);
-}
-
-void CIcePlayer::InitConnection()
-{
-    connect(_exitButton,&CIceButton::clicked,this,&CIcePlayer::close);
-    connect(_minButton,&CIceButton::clicked,this,&CIcePlayer::showMinimized);
-    connect(_mminButton,&CIceButton::clicked,this,&CIcePlayer::OnMminButtonClicked);
-    connect(_logoButton,&CIceButton::clicked,this,&CIcePlayer::OnLogoButtonClicked);
-    connect(_addButton,&CIceButton::clicked,this,&CIcePlayer::OnAddButtonClicked);
-    connect(_playButton,&CIceButton::clicked,this,&CIcePlayer::OnPlayButtonClicked);
-    connect(_lyricButton,&CIceButton::clicked,this,&CIcePlayer::OnLyricButtonClicked);
-    connect(_modeButton,&CIceButton::clicked,this,&CIcePlayer::OnModeButtonClicked);
-    connect(_nextButton,&CIceButton::clicked,this,&CIcePlayer::OnNextButtonClicked);
-    connect(_lastButton,&CIceButton::clicked,this,&CIcePlayer::OnLastButtonClicked);
-    connect(_pauseButton,&CIceButton::clicked,this,&CIcePlayer::OnPauseButtonClicked);
-
-    connect(_mediaPlayer,&QMediaPlayer::positionChanged,this,&CIcePlayer::OnUpdatePlayerPositon);
-    connect(_mediaPlayer,&QMediaPlayer::durationChanged,this,&CIcePlayer::OnUpdatePlayerDuration);
-    connect(_mediaPlayer,&QMediaPlayer::stateChanged,this,&CIcePlayer::OnUpdatePlayerState);
-    connect(_mediaPlayer,SIGNAL(metaDataChanged()),this,SLOT(OnUpdatePlayerMetaData()));
-
-    connect(_volButton,&CIceVolButton::SiVolumeChanged,_mediaPlayer,&QMediaPlayer::setVolume);
-    connect(_playSlider,&QSlider::sliderMoved,this,&CIcePlayer::OnSetPlayPosition);
-    connect(_playSlider,&QSlider::sliderReleased,this,&CIcePlayer::OnSetPosition);
-
-    connect(_playlistTable,&QTableWidget::cellDoubleClicked,this,&CIcePlayer::OnPlaylistClicked);
-    connect(_playlistTable,&QTableWidget::customContextMenuRequested,this,&CIcePlayer::OnShowCustomContextMenu);
-}
-
-void CIcePlayer::InitSubWindow()
-{
-    _aboutFrame = new CAboutFrame;
-}
-
-void CIcePlayer::paintEvent(QPaintEvent *e)
-{
-    QPainter p(this);
-    p.drawPixmap(0, 0 , QPixmap(":/pic/background.png"));
-}
-
-void CIcePlayer::dropEvent(QDropEvent *event)
-{
-
-}
-
-void CIcePlayer::dragEnterEvent(QDragEnterEvent *event)
-{
-
-}
-
-void CIcePlayer::mousePressEvent(QMouseEvent * e)
-{
-    if(e->button() != Qt::LeftButton && !_isMoveState)
-        return;
-
-    _isMoveState = true;
-
-    _x = e->pos().x();
-    _y = e->pos().y();
-}
-
-void CIcePlayer::mouseMoveEvent(QMouseEvent * e)
-{
-    if(e->button() != Qt::LeftButton && !_isMoveState)
-        return;
-
-    QPoint curPos = e->globalPos();
-    move(curPos.x() - _x ,curPos.y() - _y);
-}
-
-void CIcePlayer::mouseReleaseEvent(QMouseEvent * e)
-{
-    if(e->button() != Qt::LeftButton)
-        return;
-
-    _isMoveState = false;
-}
-
-void CIcePlayer::OnMminButtonClicked()
-{
-
-}
-
-void CIcePlayer::OnLogoButtonClicked()
-{
-    _aboutFrame->show();
-}
-
-void CIcePlayer::OnAddButtonClicked()
-{
-
-}
-
-void CIcePlayer::OnPlayButtonClicked()
-{
-
-}
-
-void CIcePlayer::OnLyricButtonClicked()
-{
-
-}
-
-void CIcePlayer::OnModeButtonClicked()
-{
-
-}
-
-void CIcePlayer::OnNextButtonClicked()
-{
-
-}
-
-void CIcePlayer::OnLastButtonClicked()
-{
-
-}
-
-void CIcePlayer::OnPauseButtonClicked()
-{
-
-}
-
-void CIcePlayer::OnUpdatePlayerPositon(qint64 pos)
-{
-
-}
-
-void CIcePlayer::OnUpdatePlayerDuration(qint64 dur)
-{
-
-}
-
-void CIcePlayer::OnUpdatePlayerState(QMediaPlayer::State state)
-{
-
-}
-
-void CIcePlayer::OnUpdatePlayerMetaData()
-{
-
-}
-
-void CIcePlayer::OnSetPlayPosition(int p)
-{
-
-}
-
-void CIcePlayer::OnSetPosition()
-{
-
-}
-
-void CIcePlayer::OnPlaylistClicked(int row, int column)
-{
-
-}
-
-void CIcePlayer::OnShowCustomContextMenu(const QPoint &p)
-{
-
 }
