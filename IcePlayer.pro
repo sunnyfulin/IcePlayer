@@ -9,4 +9,5 @@ OBJECTS_DIR += $$PWD/obj
 
 include($$PWD/src/src.pri)
 
-RESOURCES += resource.qrc
+RESOURCES += resource.qrc \
+    skin.qrc

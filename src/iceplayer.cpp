@@ -67,11 +67,6 @@ void CIcePlayer::InitMainWindow()
     _playSlider->setGeometry(QRect(40,150,290,20));
     _playSlider->setFont(QFont(QStringLiteral("微软雅黑"),9));
 
-    _playSlider->setStyleSheet("QSlider::groove:horizontal{border:0px;height:4px;}"
-        "QSlider::sub-page:horizontal{background:#0096ff;}"
-        "QSlider::add-page:horizontal{background:lightgray;} "
-        "QSlider::handle:horizontal{background:white;width:10px;border:#51b5fb 10px;border-radius:5px;margin:-3px 0px -3px 0px;}");
-
     QPalette timePalette;
     timePalette.setColor(QPalette::WindowText, QColor(106, 182, 240));
     _timeLabel = new QLabel("00:00",this);
@@ -182,12 +177,6 @@ void CIcePlayer::InitMainWindow()
     pal.setBrush(QPalette::Base, QBrush(QColor(255, 255, 255)));
     _playlistTable->setPalette(pal);
     _playlistTable->setAcceptDrops(true);
-
-    _playlistTable->setStyleSheet("QScrollBar{background:transparent; width: 5px;}"
-        "QScrollBar::handle{background:lightgray; border:2px solid transparent; border-radius:5px;}"
-        "QScrollBar::handle:hover{background:gray;}"
-        "QScrollBar::sub-line{background:transparent;}"
-        "QScrollBar::add-line{background:transparent;}");
 }
 
 void CIcePlayer::InitPlayer()
