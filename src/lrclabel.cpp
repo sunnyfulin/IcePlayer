@@ -1,4 +1,4 @@
-#include "lrclabel.h"
+﻿#include "lrclabel.h"
 
 #include <QMenu>
 #include <QFont>
@@ -10,7 +10,7 @@ CLrcLabel::CLrcLabel(QWidget *parent) : CIceLabel("IcePlayer",parent)
     _linearGradient.setStart(0, 10);
     _linearGradient.setFinalStop(0, 40);
     _linearGradient.setColorAt(0, QColor(1, 150, 255));
-    _lrcFont.setFamily(QString::fromLocal8Bit("????"));
+    _lrcFont.setFamily(QStringLiteral("微软雅黑"));
     _lrcFont.setPointSize(25);
 }
 

@@ -6,6 +6,7 @@
 #include "aboutframe.h"
 #include "lrcwidget.h"
 
+#include <QUrl>
 #include <QMenu>
 #include <QTime>
 #include <QFrame>
@@ -15,6 +16,8 @@
 #include <QSlider>
 #include <QPalette>
 #include <QPainter>
+#include <QMimeData>
+#include <QDropEvent>
 #include <QMouseEvent>
 #include <QHeaderView>
 #include <QActionGroup>
@@ -108,14 +111,14 @@ void CIcePlayer::InitMenuAction()
 
     connect(ag,&QActionGroup::triggered,this,&CIcePlayer::OnSetPlayMode);
 
-    QMenu * playModeMenu = new QMenu(_modeButton);
-    playModeMenu->addAction(modeSingle);
-    playModeMenu->addAction(modeListCircle);
-    playModeMenu->addAction(modeSingalCircle);
-    playModeMenu->addAction(modeRandom);
+    _playModeMenu = new QMenu(_modeButton);
+    _playModeMenu->addAction(modeSingle);
+    _playModeMenu->addAction(modeListCircle);
+    _playModeMenu->addAction(modeSingalCircle);
+    _playModeMenu->addAction(modeRandom);
 
-    QMenu * contextMenuLess = new QMenu(_playlistTable);
-    QMenu * contextMenuMore = new QMenu(_playlistTable);
+    _contextMenuLess = new QMenu(_playlistTable);
+    _contextMenuMore = new QMenu(_playlistTable);
 
     QAction * addMusic = new QAction(QStringLiteral("添加歌曲"),this);
     QAction * addFileDiv = new QAction(QStringLiteral("添加目录"),this);
@@ -127,16 +130,16 @@ void CIcePlayer::InitMenuAction()
     connect(removeCurr, &QAction::triggered,this,&CIcePlayer::OnRemoveCurrentMusic);
     connect(removeAll, &QAction::triggered,this,&CIcePlayer::OnClearPlayList);
 
-    contextMenuLess->addAction(addMusic);
-    contextMenuLess->addAction(addFileDiv);
-    contextMenuLess->addSeparator();
-    contextMenuLess->addAction(removeAll);
+    _contextMenuLess->addAction(addMusic);
+    _contextMenuLess->addAction(addFileDiv);
+    _contextMenuLess->addSeparator();
+    _contextMenuLess->addAction(removeAll);
 
-    contextMenuMore->addAction(addMusic);
-    contextMenuMore->addAction(addFileDiv);
-    contextMenuMore->addSeparator();
-    contextMenuMore->addAction(removeCurr);
-    contextMenuMore->addAction(removeAll);
+    _contextMenuMore->addAction(addMusic);
+    _contextMenuMore->addAction(addFileDiv);
+    _contextMenuMore->addSeparator();
+    _contextMenuMore->addAction(removeCurr);
+    _contextMenuMore->addAction(removeAll);
 }
 
 void CIcePlayer::paintEvent(QPaintEvent *e)
@@ -147,12 +150,29 @@ void CIcePlayer::paintEvent(QPaintEvent *e)
 
 void CIcePlayer::dropEvent(QDropEvent *e)
 {
+    QList<QUrl> urls = e->mimeData()->urls();
+    if(urls.isEmpty())
+        return;
 
+    QStringList dropfilename;
+    foreach(QUrl u, urls)
+    {
+        if (u.toString().right(4) == ".mp3")
+        {
+            dropfilename.append(u.toLocalFile());
+        }
+    }
+
+    if(!dropfilename.isEmpty())
+    {
+//        addlist(dropfilename);
+    }
 }
 
 void CIcePlayer::dragEnterEvent(QDragEnterEvent *e)
 {
-
+    if(e->mimeData()->hasFormat("text/uri-list"))
+        e->acceptProposedAction();
 }
 
 void CIcePlayer::mousePressEvent(QMouseEvent * e)
@@ -200,7 +220,10 @@ void CIcePlayer::OnAddButtonClicked()
 
 void CIcePlayer::OnPlayButtonClicked()
 {
-
+    if(_mediaPlayer->state() == QMediaPlayer::PausedState)
+    {
+        _mediaPlayer->play();
+    }
 }
 
 void CIcePlayer::OnLyricButtonClicked()
@@ -210,7 +233,7 @@ void CIcePlayer::OnLyricButtonClicked()
 
 void CIcePlayer::OnModeButtonClicked()
 {
-
+    _playModeMenu->exec(QCursor::pos());
 }
 
 void CIcePlayer::OnNextButtonClicked()
@@ -225,7 +248,10 @@ void CIcePlayer::OnLastButtonClicked()
 
 void CIcePlayer::OnPauseButtonClicked()
 {
-
+    if(_mediaPlayer->state() == QMediaPlayer::PlayingState)
+    {
+        _mediaPlayer->pause();
+    }
 }
 
 void CIcePlayer::OnUpdatePlayerPositon(qint64 pos)
@@ -334,7 +360,15 @@ void CIcePlayer::OnPlaylistClicked(int row, int column)
 
 void CIcePlayer::OnShowCustomContextMenu(const QPoint &p)
 {
-
+    if(_playlistTable->itemAt(p))
+    {
+        _currentIndex = _playlistTable->rowAt(p.y());
+        _contextMenuMore->exec(QCursor::pos());
+    }
+    else
+    {
+        _contextMenuLess->exec(QCursor::pos());
+    }
 }
 
 void CIcePlayer::OnOpenMusic()
@@ -354,7 +388,18 @@ void CIcePlayer::OnRemoveCurrentMusic()
 
 void CIcePlayer::OnClearPlayList()
 {
+    _mediaPlayer->stop();
+    _playList.clear();
+    _mediaList->clear();
 
+    while(_playlistTable->rowCount())
+        _playlistTable->removeRow(0);
+
+    _timeLabel->setText("00:00");
+    _nameLabel->setText("Name");
+    _nameLabel->SetStopRolling();
+    _musicianLabel->setText("Musician");
+    _albumLabel->setText("Album");
 }
 
 void CIcePlayer::InitMainWindow()

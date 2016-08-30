@@ -112,6 +112,10 @@ private:
     QMediaPlayer * _mediaPlayer;
     QMediaPlaylist * _mediaList;
 
+    QMenu * _contextMenuLess;
+    QMenu * _contextMenuMore;
+    QMenu * _playModeMenu;
+
 //    NetWorker *networker;
     QString _songName;
     QString _songArtist;
